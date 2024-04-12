@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	c := config.NewConfig()
+	c := config.NewConfig(config.DefaultPath)
 	if c == nil {
 		_ = config.Config{}.Save()
 		panic("Failed to load config")

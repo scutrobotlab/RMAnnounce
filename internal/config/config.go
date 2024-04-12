@@ -19,8 +19,8 @@ func GetInstance() Config {
 	return *instance
 }
 
-func NewConfig() *Config {
-	file, err := os.Open(DefaultPath)
+func NewConfig(path string) *Config {
+	file, err := os.Open(path)
 	if err != nil {
 		return nil
 	}
