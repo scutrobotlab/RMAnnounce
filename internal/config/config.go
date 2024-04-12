@@ -19,8 +19,8 @@ func GetInstance() Config {
 	return *instance
 }
 
-func NewConfig(path string) *Config {
-	file, err := os.Open(path)
+func NewConfig() *Config {
+	file, err := os.Open(DefaultPath)
 	if err != nil {
 		return nil
 	}
@@ -41,26 +41,26 @@ func NewConfig(path string) *Config {
 	return &config
 }
 
-func SaveConfig(path string, config Config) error {
-	bytes, err := yaml.Marshal(config)
+func (c Config) Save() error {
+	bytes, err := yaml.Marshal(c)
 	if err != nil {
 		return err
 	}
 
 	// check if file exists
-	_, err = os.Stat(path)
+	_, err = os.Stat(DefaultPath)
 	if os.IsNotExist(err) {
-		_, err = os.Create(path)
+		_, err = os.Create(DefaultPath)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = os.WriteFile(path, bytes, 0644)
+	err = os.WriteFile(DefaultPath, bytes, 0644)
 	if err != nil {
 		return err
 	}
 
-	instance = &config
+	instance = &c
 	return nil
 }

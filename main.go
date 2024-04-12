@@ -6,9 +6,9 @@ import (
 )
 
 func main() {
-	c := config.NewConfig(config.DefaultPath)
+	c := config.NewConfig()
 	if c == nil {
-		_ = config.SaveConfig(config.DefaultPath, config.Config{})
+		_ = config.Config{}.Save()
 		panic("Failed to load config")
 	}
 
