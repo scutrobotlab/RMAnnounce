@@ -10,6 +10,9 @@ type Config struct {
 	Webhook string `yaml:"webhook"`
 }
 
+// Instance is a global variable that stores the config instance
+var Instance Config
+
 func NewConfig(path string) *Config {
 	file, err := os.Open(path)
 	if err != nil {
