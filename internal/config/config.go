@@ -7,8 +7,8 @@ import (
 )
 
 type Config struct {
-	Webhook string `yaml:"webhook"`
-	LastId  int    `yaml:"lastId"`
+	Webhooks []string `yaml:"webhooks"`
+	LastId   int      `yaml:"lastId"`
 }
 
 const DefaultPath = "etc/config.yaml"

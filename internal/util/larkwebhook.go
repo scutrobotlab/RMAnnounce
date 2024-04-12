@@ -3,7 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -19,7 +19,7 @@ type WebhookBotResp struct {
 	Msg  string `json:"msg"`
 }
 
-func SendWebhookMsg(url string, msg string) error {
+func SendWebhookMsg(urls []string, msg string) error {
 	req := WebhookBotReq{
 		MsgType: "text",
 	}
@@ -30,20 +30,26 @@ func SendWebhookMsg(url string, msg string) error {
 		return err
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewReader(reqBody))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+	for _, url := range urls {
+		resp, err := http.Post(url, "application/json", bytes.NewReader(reqBody))
+		if err != nil {
+			log.Printf("Failed to send webhook message: %v", err)
+			continue
+		}
 
-	var respBody WebhookBotResp
-	err = json.NewDecoder(resp.Body).Decode(&respBody)
-	if err != nil {
-		return err
-	}
+		var respBody WebhookBotResp
+		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		if err != nil {
+			log.Printf("Failed to send webhook message: %v", err)
+			continue
+		}
 
-	if respBody.Code != 0 {
-		return fmt.Errorf("failed to send webhook message: %s", respBody.Msg)
+		if respBody.Code != 0 {
+			log.Printf("Failed to send webhook message: %s", respBody.Msg)
+			continue
+		}
+
+		resp.Body.Close()
 	}
 
 	return nil
