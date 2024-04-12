@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"git.scutbot.cn/Web/RMAnnounce/internal/config"
 	"git.scutbot.cn/Web/RMAnnounce/internal/job"
 )
@@ -18,6 +19,8 @@ func main() {
 	}
 	cron.Start()
 	defer cron.Stop()
+
+	fmt.Printf("RoboMaster Announce Bot started\n")
 
 	select {}
 }
