@@ -6,11 +6,11 @@ import (
 )
 
 func main() {
-	c := config.NewConfig("etc/config.yaml")
+	c := config.NewConfig(config.DefaultPath)
 	if c == nil {
+		_ = config.SaveConfig(config.DefaultPath, config.Config{})
 		panic("Failed to load config")
 	}
-	config.Instance = *c
 
 	cron := job.InitCronjob()
 	if cron == nil {
