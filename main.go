@@ -10,7 +10,8 @@ func main() {
 	c := config.NewConfig(config.DefaultPath)
 	if c == nil {
 		_ = config.Config{}.Save()
-		panic("Failed to load config")
+		c = &config.Config{}
+		fmt.Printf("Config file not found, a new one has been created\n")
 	}
 
 	cron := job.InitCronjob()
