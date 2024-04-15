@@ -11,7 +11,7 @@ func TestSendWebhookMsg(t *testing.T) {
 		t.Fatal("Failed to load config")
 	}
 
-	err := SendWebhookMsg(c.Webhooks, "RoboMaster 资料站新公告\n"+
+	err := SendTextMsg(c.Webhooks, "RoboMaster 资料站新公告\n"+
 		"现在这个世界上只有一个我，如果我有更多分身，就不会那么孤独了。\n"+
 		"趁主人不在，我偷偷把自己的源码公布在 GitHub https://github.com/scutrobotlab/RMAnnounce\n"+
 		"对于不关注我的实现，只想快点认领我的新主人，我也提供 Docker 镜像 registry.cn-guangzhou.aliyuncs.com/scutrobot/rm-announce:latest\n"+
