@@ -52,8 +52,15 @@ func (f FetchAnnounceJob) Run() {
 		return
 	}
 
-	msg := fmt.Sprintf("RoboMaster 资料站新公告\n%s", url)
-	err = util.SendTextMsg(c.Webhooks, msg)
+	contents := [][]util.Content{
+		{
+			{
+				Tag:  "text",
+				Text: url,
+			},
+		},
+	}
+	err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", contents)
 	if err != nil {
 		fmt.Println(err)
 		return
