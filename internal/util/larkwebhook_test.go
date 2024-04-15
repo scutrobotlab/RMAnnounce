@@ -1,7 +1,7 @@
 package util
 
 import (
-	"git.scutbot.cn/Web/RMAnnounce/internal/config"
+	"github.com/scutrobotlab/RMAnnounce/internal/config"
 	"testing"
 )
 

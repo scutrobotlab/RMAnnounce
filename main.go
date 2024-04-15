@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"git.scutbot.cn/Web/RMAnnounce/internal/config"
-	"git.scutbot.cn/Web/RMAnnounce/internal/job"
+	"github.com/scutrobotlab/RMAnnounce/internal/config"
+	"github.com/scutrobotlab/RMAnnounce/internal/job"
 )
 
 func main() {

@@ -2,8 +2,8 @@ package job
 
 import (
 	"fmt"
-	"git.scutbot.cn/Web/RMAnnounce/internal/config"
-	"git.scutbot.cn/Web/RMAnnounce/internal/util"
+	"github.com/scutrobotlab/RMAnnounce/internal/config"
+	"github.com/scutrobotlab/RMAnnounce/internal/util"
 	"io"
 	"log"
 	"net/http"

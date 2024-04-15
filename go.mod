@@ -1,4 +1,4 @@
-module git.scutbot.cn/Web/RMAnnounce
+module github.com/scutrobotlab/RMAnnounce
 
 go 1.22.1
 
