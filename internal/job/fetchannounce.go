@@ -13,8 +13,18 @@ import (
 type FetchAnnounceJob struct {
 }
 
+func (f FetchAnnounceJob) Init() {
+	c := config.GetInstance()
+	fmt.Printf("Load webhooks count: %d\n", len(c.Webhooks))
+}
+
 func (f FetchAnnounceJob) Run() {
 	c := config.GetInstance()
+	if c.LastId == 0 {
+		fmt.Printf("LastId is 0, skip\n")
+		return
+	}
+
 	url := getUrl(c.LastId + 1)
 
 	resp, err := http.Get(url)
