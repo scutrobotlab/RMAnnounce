@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/scutrobotlab/RMAnnounce/internal/config"
 	"github.com/scutrobotlab/RMAnnounce/internal/util"
+	"golang.org/x/net/html"
 	"io"
 	"log"
 	"net/http"
@@ -52,8 +53,28 @@ func (f FetchAnnounceJob) Run() {
 		return
 	}
 
+	// 解析HTML
+	doc, err := html.Parse(strings.NewReader(bodyStr))
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	title, err := getMainTitle(doc)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	contents := [][]util.Content{
 		{
+			{
+				Tag:    "at",
+				UserId: "all",
+			},
+			{
+				Tag:  "text",
+				Text: " " + title + "\n",
+			},
 			{
 				Tag:  "text",
 				Text: url,
@@ -69,4 +90,26 @@ func (f FetchAnnounceJob) Run() {
 
 func getUrl(id int) string {
 	return fmt.Sprintf("https://www.robomaster.com/zh-CN/resource/pages/announcement/%d", id)
+}
+
+// 递归查找主标题
+func getMainTitle(n *html.Node) (string, error) {
+	// 如果是p标签且class为main-title，则返回标题
+	if n.Type == html.ElementNode && n.Data == "p" {
+		for _, attr := range n.Attr {
+			if attr.Key == "class" && attr.Val == "main-title" {
+				return n.FirstChild.Data, nil
+			}
+		}
+	}
+
+	// 递归处理子节点
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		title, err := getMainTitle(c)
+		if err == nil {
+			return title, nil
+		}
+	}
+
+	return "", fmt.Errorf("main title not found")
 }
