@@ -73,7 +73,7 @@ func (f FetchAnnounceJob) Run() {
 			},
 			{
 				Tag:  "text",
-				Text: " " + title + "\n",
+				Text: " [新增] " + title + "\n",
 			},
 			{
 				Tag:  "text",

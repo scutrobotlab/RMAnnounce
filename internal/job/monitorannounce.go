@@ -4,7 +4,11 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/scutrobotlab/RMAnnounce/internal/config"
+	"github.com/scutrobotlab/RMAnnounce/internal/util"
 	"golang.org/x/net/html"
+	"io"
+	"log"
+	"net/http"
 	"strings"
 )
 
@@ -17,7 +21,88 @@ func (m MonitorAnnounceJob) Init() {
 }
 
 func (m MonitorAnnounceJob) Run() {
-	fmt.Printf("MonitorAnnounceJob run\n")
+	c := config.GetInstance()
+	for i, page := range c.MonitoredPages {
+		url := getUrl(page.Id)
+		resp, err := http.Get(url)
+		if err != nil {
+			log.Printf("Failed to get page %d: %v", page.Id, err)
+			continue
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			log.Printf("Failed to read page %d: %v", page.Id, err)
+			continue
+		}
+
+		bodyStr := string(body)
+		doc, err := html.Parse(strings.NewReader(bodyStr))
+		if err != nil {
+			log.Printf("Failed to parse page %d: %v", page.Id, err)
+			continue
+		}
+
+		mainContext, err := getMainContext(doc)
+		if err != nil {
+			log.Printf("Failed to get main context of page %d: %v", page.Id, err)
+			continue
+		}
+
+		hash, err := getMainContextHash(mainContext)
+		if err != nil {
+			log.Printf("Failed to get hash of page %d: %v", page.Id, err)
+			continue
+		}
+
+		c.MonitoredPages[i].Hash = hash
+		err = c.Save()
+		if err != nil {
+			log.Printf("Failed to save page %d: %v", page.Id, err)
+			continue
+		}
+
+		if page.Hash == "" {
+			log.Printf("Init hash of page %d: %s", page.Id, hash)
+			continue
+		}
+
+		if page.Hash != hash {
+			page.Hash = hash
+			_ = c.Save()
+			log.Printf("Hash changed of page %d: %s", page.Id, hash)
+
+			var title string
+			title, err = getMainTitle(doc)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			contents := [][]util.Content{
+				{
+					{
+						Tag:    "at",
+						UserId: "all",
+					},
+					{
+						Tag:  "text",
+						Text: " [更新] " + title + "\n",
+					},
+					{
+						Tag:  "text",
+						Text: url,
+					},
+				},
+			}
+			err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", contents)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		}
+	}
 }
 
 // 递归查找主内容
