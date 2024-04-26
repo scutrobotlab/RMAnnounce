@@ -12,12 +12,18 @@ docker build .
 
 ### Example
 
+etc/config.yaml
+
 ```yaml
 # 飞书机器人 Webhook
 webhooks:
   - https://open.feishu.cn/open-apis/bot/v2/hook/...
 # RM 公告最后一条 ID
 lastId: 1708
+# 监控更新的页面
+monitored_pages:
+  - id: 1653 # 页面 ID
+    hash: # 页面正文的散列值 第一次运行时请留空
 ```
 
 ## Run
