@@ -17,7 +17,7 @@ type MonitorAnnounceJob struct {
 
 func (m MonitorAnnounceJob) Init() {
 	c := config.GetInstance()
-	fmt.Printf("Monitor pages count: %d\n", len(c.MonitoredPages))
+	log.Printf("Monitor pages count: %d\n", len(c.MonitoredPages))
 }
 
 func (m MonitorAnnounceJob) Run() {
@@ -69,10 +69,7 @@ func (m MonitorAnnounceJob) Run() {
 		}
 
 		if page.Hash != hash {
-			page.Hash = hash
-			_ = c.Save()
 			log.Printf("Hash changed of page %d: %s", page.Id, hash)
-
 			var title string
 			title, err = getMainTitle(doc)
 			if err != nil {
@@ -98,7 +95,7 @@ func (m MonitorAnnounceJob) Run() {
 			}
 			err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", contents)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 		}

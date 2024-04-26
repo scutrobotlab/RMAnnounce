@@ -16,13 +16,13 @@ type FetchAnnounceJob struct {
 
 func (f FetchAnnounceJob) Init() {
 	c := config.GetInstance()
-	fmt.Printf("Load webhooks count: %d\n", len(c.Webhooks))
+	log.Printf("Load webhooks count: %d\n", len(c.Webhooks))
 }
 
 func (f FetchAnnounceJob) Run() {
 	c := config.GetInstance()
 	if c.LastId == 0 {
-		fmt.Printf("LastId is 0, skip\n")
+		log.Printf("LastId is 0, skip\n")
 		return
 	}
 
@@ -49,7 +49,7 @@ func (f FetchAnnounceJob) Run() {
 	c.LastId++
 	err = c.Save()
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (f FetchAnnounceJob) Run() {
 	}
 	err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", contents)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 }
