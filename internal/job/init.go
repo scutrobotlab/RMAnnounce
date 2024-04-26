@@ -17,5 +17,13 @@ func InitCronjob() *cron.Cron {
 		return nil
 	}
 
+	monitorAnnounce := MonitorAnnounceJob{}
+	_, err = c.AddJob("@every 5s", monitorAnnounce)
+	monitorAnnounce.Init()
+	if err != nil {
+		fmt.Printf("Failed to add job: %v\n", err)
+		return nil
+	}
+
 	return c
 }

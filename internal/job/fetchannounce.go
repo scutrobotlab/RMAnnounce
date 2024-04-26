@@ -113,25 +113,3 @@ func getMainTitle(n *html.Node) (string, error) {
 
 	return "", fmt.Errorf("main title not found")
 }
-
-// 递归查找主内容
-func getMainContext(n *html.Node) (*html.Node, error) {
-	// 如果是p标签且class为main-title，则返回标题
-	if n.Type == html.ElementNode && n.Data == "div" {
-		for _, attr := range n.Attr {
-			if attr.Key == "class" && attr.Val == "main-context" {
-				return n, nil
-			}
-		}
-	}
-
-	// 递归处理子节点
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		context, err := getMainContext(c)
-		if err == nil {
-			return context, nil
-		}
-	}
-
-	return nil, fmt.Errorf("main context not found")
-}

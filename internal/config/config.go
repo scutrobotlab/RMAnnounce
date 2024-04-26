@@ -7,8 +7,14 @@ import (
 )
 
 type Config struct {
-	Webhooks []string `yaml:"webhooks"`
-	LastId   int      `yaml:"lastId"`
+	Webhooks       []string        `yaml:"webhooks"`
+	LastId         int             `yaml:"lastId"`
+	MonitoredPages []MonitoredPage `yaml:"monitored_pages"`
+}
+
+type MonitoredPage struct {
+	Id   int    `yaml:"id"`
+	Hash string `yaml:"hash"`
 }
 
 const DefaultPath = "etc/config.yaml"
