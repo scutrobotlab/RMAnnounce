@@ -56,19 +56,26 @@ func (m MonitorAnnounceJob) Run() {
 			continue
 		}
 
-		c.MonitoredPages[i].Hash = hash
-		err = c.Save()
-		if err != nil {
-			log.Printf("Failed to save page %d: %v", page.Id, err)
-			continue
-		}
-
 		if page.Hash == "" {
+			c.MonitoredPages[i].Hash = hash
+			err = c.Save()
+			if err != nil {
+				log.Printf("Failed to save page %d: %v", page.Id, err)
+				continue
+			}
+
 			log.Printf("Init hash of page %d: %s", page.Id, hash)
 			continue
 		}
 
 		if page.Hash != hash {
+			c.MonitoredPages[i].Hash = hash
+			err = c.Save()
+			if err != nil {
+				log.Printf("Failed to save page %d: %v", page.Id, err)
+				continue
+			}
+
 			log.Printf("Hash changed of page %d: %s", page.Id, hash)
 			var title string
 			title, err = getMainTitle(doc)
