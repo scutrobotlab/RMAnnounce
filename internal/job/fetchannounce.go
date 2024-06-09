@@ -65,22 +65,46 @@ func (f FetchAnnounceJob) Run() {
 		return
 	}
 
-	contents := [][]util.Content{
-		{
-			{
-				Tag:    "at",
-				UserId: "all",
-			},
-			{
-				Tag:  "text",
-				Text: " [新增] " + title + "\n",
-			},
-			{
-				Tag:  "text",
-				Text: url,
-			},
-		},
+	mainContext, err := getMainContext(doc)
+	if err != nil {
+		log.Printf("Failed to get main context of page %d: %v", c.LastId, err)
+		return
 	}
+	contextIsEmpty := mainContext.FirstChild == nil
+
+	var contents [][]util.Content
+	if contextIsEmpty {
+		contents = [][]util.Content{
+			{
+				{
+					Tag:  "text",
+					Text: "[空白] " + title + "\n",
+				},
+				{
+					Tag:  "text",
+					Text: url,
+				},
+			},
+		}
+	} else {
+		contents = [][]util.Content{
+			{
+				{
+					Tag:    "at",
+					UserId: "all",
+				},
+				{
+					Tag:  "text",
+					Text: " [新增] " + title + "\n",
+				},
+				{
+					Tag:  "text",
+					Text: url,
+				},
+			},
+		}
+	}
+
 	err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", contents)
 	if err != nil {
 		log.Println(err)
