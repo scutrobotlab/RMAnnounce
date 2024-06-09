@@ -10,7 +10,7 @@ func InitCronjob() *cron.Cron {
 	c := cron.New()
 
 	fetchAnnounce := FetchAnnounceJob{}
-	_, err := c.AddJob("@every 5s", fetchAnnounce)
+	_, err := c.AddJob("@every 15s", fetchAnnounce)
 	fetchAnnounce.Init()
 	if err != nil {
 		fmt.Printf("Failed to add job: %v\n", err)
@@ -18,7 +18,7 @@ func InitCronjob() *cron.Cron {
 	}
 
 	monitorAnnounce := MonitorAnnounceJob{}
-	_, err = c.AddJob("@every 5s", monitorAnnounce)
+	_, err = c.AddJob("@every 15s", monitorAnnounce)
 	monitorAnnounce.Init()
 	if err != nil {
 		fmt.Printf("Failed to add job: %v\n", err)
