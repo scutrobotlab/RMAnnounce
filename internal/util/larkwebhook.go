@@ -8,6 +8,14 @@ import (
 	"net/http"
 )
 
+type AtAllStatus int
+
+const (
+	AtAllStatusFalse AtAllStatus = iota // 不@所有人
+	AtAllStatusTrue  AtAllStatus = iota // @所有人
+	AtAllStatusAuto  AtAllStatus = iota // 自动判断
+)
+
 type WebhookBotTextReq struct {
 	MsgType string `json:"msg_type"`
 	Content struct {
@@ -55,11 +63,23 @@ func SendTextMsg(urls []string, msg string) error {
 }
 
 // SendPostMsg 发送富文本消息
-func SendPostMsg(urls []string, title string, atAll bool, content [][]Content) error {
+func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [][]Content) error {
 	req := WebhookBotPostReq{
 		MsgType: "post",
 	}
 	req.Content.Post.ZhCn.Title = title
+
+	var atAll bool
+	switch atAllStatus {
+	case AtAllStatusFalse:
+		atAll = false
+	case AtAllStatusTrue:
+		atAll = true
+	case AtAllStatusAuto:
+		// TODO: 自动判断
+	default:
+		return errors.New("invalid atAllStatus")
+	}
 	if atAll {
 		if len(content) != 0 {
 			content[0] = append([]Content{

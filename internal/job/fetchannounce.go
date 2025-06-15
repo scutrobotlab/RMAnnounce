@@ -101,10 +101,10 @@ func (f *FetchAnnounceJob) Run() {
 	}
 	contextIsEmpty := mainContext.FirstChild == nil
 
-	var atAll bool
+	var atAllType util.AtAllStatus
 	var contents [][]util.Content
 	if contextIsEmpty {
-		atAll = false
+		atAllType = util.AtAllStatusFalse
 		contents = [][]util.Content{
 			{
 				{
@@ -118,7 +118,7 @@ func (f *FetchAnnounceJob) Run() {
 			},
 		}
 	} else {
-		atAll = true
+		atAllType = util.AtAllStatusAuto
 		contents = [][]util.Content{
 			{
 				{
@@ -133,7 +133,7 @@ func (f *FetchAnnounceJob) Run() {
 		}
 	}
 
-	err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", atAll, contents)
+	err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", atAllType, contents)
 	if err != nil {
 		logrus.Errorf("Failed to send robotomaster notification: %v", err)
 		return
