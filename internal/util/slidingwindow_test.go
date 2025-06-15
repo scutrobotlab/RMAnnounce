@@ -18,6 +18,6 @@ func TestNewOperationCounter(t *testing.T) {
 	}
 
 	// 打印最近1分钟内的操作次数
-	count := counter.GetCount()
+	count := counter.Count()
 	fmt.Printf("最近5秒内的操作次数: %d\n", count)
 }

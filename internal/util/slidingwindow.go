@@ -29,8 +29,8 @@ func (oc *SlidingWindowCounter) Increment() {
 	oc.timestamps = append(oc.timestamps, time.Now())
 }
 
-// GetCount 获取时间窗口内的操作次数
-func (oc *SlidingWindowCounter) GetCount() int {
+// Count 获取时间窗口内的操作次数
+func (oc *SlidingWindowCounter) Count() int {
 	oc.mutex.Lock()
 	defer oc.mutex.Unlock()
 
