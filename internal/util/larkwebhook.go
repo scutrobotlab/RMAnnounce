@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"sync/atomic"
@@ -19,17 +20,17 @@ type SendCircuitBreaker struct {
 var (
 	SendCircuitBreakers = []SendCircuitBreaker{
 		{
-			Name:     "Per Hour",
+			Name:     "每小时",
 			Counter:  NewSlidingWindowCounter(time.Hour),
 			MaxCount: 15,
 		},
 		{
-			Name:     "Per Minute",
+			Name:     "每分钟",
 			Counter:  NewSlidingWindowCounter(time.Minute),
 			MaxCount: 5,
 		},
 		{
-			Name:     "Per 5 Seconds",
+			Name:     "每5秒",
 			Counter:  NewSlidingWindowCounter(time.Second * 5),
 			MaxCount: 3,
 		},
@@ -99,7 +100,7 @@ func SendTextMsg(urls []string, msg string) error {
 	return SendWebhookMsg(urls, reqBody)
 }
 
-func CheckCircuitBreaker() bool {
+func CheckCircuitBreaker(urls []string) bool {
 	circuitBreakerRecoverTime := time.UnixMilli(CircuitBreakerRecoverTime.Load())
 	if time.Now().Before(circuitBreakerRecoverTime) {
 		// 断路器处于开启状态，拒绝发送消息
@@ -110,7 +111,23 @@ func CheckCircuitBreaker() bool {
 		if breaker.Counter.Count() > breaker.MaxCount {
 			// 断路器触发，拒绝发送消息
 			logrus.Warnf("Circuit breaker triggered: %s, count: %d, max count: %d", breaker.Name, breaker.Counter.Count(), breaker.MaxCount)
-			CircuitBreakerRecoverTime.Store(time.Now().Add(CircuitBreakerDuration).UnixMilli())
+			recoverTime := time.Now().Add(CircuitBreakerDuration)
+			CircuitBreakerRecoverTime.Store(recoverTime.UnixMilli())
+			// 发送求救消息
+			content := [][]Content{
+				{
+					{Tag: "at", UserId: "ou_892a4b47aa876f799ca3aef97403e009"},
+					{Tag: "text", Text: " 已自动触发熔断，请救救我"},
+				},
+				{
+					{Tag: "text", Text: fmt.Sprintf("%s尝试发送数量达到 %d，超过最大限制 %d，已触发熔断。", breaker.Name, breaker.Counter.Count(), breaker.MaxCount)},
+					{Tag: "text", Text: fmt.Sprintf("为避免打扰，我在 %s 前会保持安静。", recoverTime.Format(time.DateTime))},
+				},
+			}
+			_, err := sendPostMsg(urls, "机器人碎碎念", content)
+			if err != nil {
+				logrus.Errorf("send post msg error: %s", err)
+			}
 			return true
 		}
 	}
@@ -120,15 +137,10 @@ func CheckCircuitBreaker() bool {
 
 // SendPostMsg 发送富文本消息
 func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [][]Content) (bool, error) {
-	if CheckCircuitBreaker() {
+	if CheckCircuitBreaker(urls) {
 		logrus.Warnf("Circuit breaker is open, cannot send message until %s", time.UnixMilli(CircuitBreakerRecoverTime.Load()).Format(time.RFC3339))
 		return false, nil
 	}
-
-	req := WebhookBotPostReq{
-		MsgType: "post",
-	}
-	req.Content.Post.ZhCn.Title = title
 
 	var atAll bool
 	switch atAllStatus {
@@ -153,6 +165,15 @@ func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [
 		}
 		LastAtAllTime.Store(time.Now().UnixMilli())
 	}
+
+	return sendPostMsg(urls, title, content)
+}
+
+func sendPostMsg(urls []string, title string, content [][]Content) (bool, error) {
+	req := WebhookBotPostReq{
+		MsgType: "post",
+	}
+	req.Content.Post.ZhCn.Title = title
 	req.Content.Post.ZhCn.Content = content
 
 	reqBody, err := json.Marshal(req)
