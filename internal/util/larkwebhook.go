@@ -71,7 +71,7 @@ func SendTextMsg(urls []string, msg string) error {
 }
 
 // SendPostMsg 发送富文本消息
-func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [][]Content) error {
+func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [][]Content) (bool, error) {
 	req := WebhookBotPostReq{
 		MsgType: "post",
 	}
@@ -87,7 +87,7 @@ func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [
 		lastAtAllTime := time.UnixMilli(LastAtAllTime.Load())
 		atAll = time.Since(lastAtAllTime) >= AtAllAutoInterval
 	default:
-		return errors.New("invalid atAllStatus")
+		return false, errors.New("invalid atAllStatus")
 	}
 	if atAll {
 		if len(content) != 0 {
@@ -96,7 +96,7 @@ func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [
 				{Tag: "text", Text: " "},
 			}, content[0]...)
 		} else {
-			return errors.New("content cannot be empty when atAll is true")
+			return false, errors.New("content cannot be empty when atAll is true")
 		}
 		LastAtAllTime.Store(time.Now().UnixMilli())
 	}
@@ -104,10 +104,10 @@ func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [
 
 	reqBody, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return SendWebhookMsg(urls, reqBody)
+	return true, SendWebhookMsg(urls, reqBody)
 }
 
 func SendWebhookMsg(urls []string, body []byte) error {

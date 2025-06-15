@@ -133,13 +133,15 @@ func (f *FetchAnnounceJob) Run() {
 		}
 	}
 
-	err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", atAllType, contents)
+	ok, err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", atAllType, contents)
 	if err != nil {
 		logrus.Errorf("Failed to send robotomaster notification: %v", err)
 		return
 	}
-	logrus.Infof("Announcement %d sent successfully", nextId)
-	f.SentMap.Set(nextIdStr, struct{}{}, time.Hour)
+	if ok {
+		logrus.Infof("Announcement %d sent successfully", nextId)
+		f.SentMap.Set(nextIdStr, struct{}{}, time.Hour)
+	}
 }
 
 func getUrl(id int) string {

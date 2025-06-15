@@ -11,7 +11,7 @@ func TestSendWebhookMsg(t *testing.T) {
 		t.Fatal("Failed to load config")
 	}
 
-	err := SendPostMsg(c.Webhooks, "机器人碎碎念", AtAllStatusFalse, [][]Content{
+	_, err := SendPostMsg(c.Webhooks, "机器人碎碎念", AtAllStatusFalse, [][]Content{
 		{
 			//{Tag: "at", UserId: "ou_892a4b47aa876f799ca3aef97403e009"},
 			{Tag: "text", Text: "测试富文本"},
@@ -28,7 +28,7 @@ func TestSendWebhookMsgAtAll(t *testing.T) {
 		t.Fatal("Failed to load config")
 	}
 
-	err := SendPostMsg(c.Webhooks, "机器人碎碎念", AtAllStatusTrue, [][]Content{
+	_, err := SendPostMsg(c.Webhooks, "机器人碎碎念", AtAllStatusTrue, [][]Content{
 		{
 			{Tag: "text", Text: "测试富文本"},
 		},
