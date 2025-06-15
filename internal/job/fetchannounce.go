@@ -34,6 +34,16 @@ func (f FetchAnnounceJob) Run() {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			logrus.Infof("Page %d not found because of 404", c.LastId+1)
+			return
+		}
+		// 其他错误状态码
+		logrus.Errorf("Failed to fetch page %d: status code %d", c.LastId+1, resp.StatusCode)
+		return
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return
@@ -41,7 +51,7 @@ func (f FetchAnnounceJob) Run() {
 
 	bodyStr := string(body)
 	if strings.Contains(bodyStr, "您访问的页面不存在") {
-		logrus.Infof("Page %d not found", c.LastId+1)
+		logrus.Infof("Page %d not found because of '您访问的页面不存在'", c.LastId+1)
 		return
 	}
 
