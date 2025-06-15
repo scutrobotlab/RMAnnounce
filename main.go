@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/scutrobotlab/RMAnnounce/internal/config"
 	"github.com/scutrobotlab/RMAnnounce/internal/job"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -11,7 +11,7 @@ func main() {
 	if c == nil {
 		_ = config.Config{}.Save()
 		c = &config.Config{}
-		fmt.Printf("Config file not found, a new one has been created\n")
+		logrus.Infof("Config file not found, a new one has been created")
 	}
 
 	cron := job.InitCronjob()
@@ -21,7 +21,7 @@ func main() {
 	cron.Start()
 	defer cron.Stop()
 
-	fmt.Printf("RoboMaster Announce Bot started\n")
+	logrus.Infof("RoboMaster Announce Bot started")
 
 	select {}
 }

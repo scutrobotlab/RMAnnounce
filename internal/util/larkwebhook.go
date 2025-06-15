@@ -3,7 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/json"
-	"log"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -73,19 +73,19 @@ func SendWebhookMsg(urls []string, body []byte) error {
 	for _, url := range urls {
 		resp, err := http.Post(url, "application/json", bytes.NewReader(body))
 		if err != nil {
-			log.Printf("Failed to send webhook message: %v", err)
+			logrus.Errorf("Failed to send webhook msg: %v", err)
 			continue
 		}
 
 		var respBody WebhookBotResp
 		err = json.NewDecoder(resp.Body).Decode(&respBody)
 		if err != nil {
-			log.Printf("Failed to send webhook message: %v", err)
+			logrus.Errorf("Failed to send webhook msg: %v", err)
 			continue
 		}
 
 		if respBody.Code != 0 {
-			log.Printf("Failed to send webhook message: %s", respBody.Msg)
+			logrus.Errorf("Failed to send webhook msg: %v", respBody.Msg)
 			continue
 		}
 

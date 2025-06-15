@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/scutrobotlab/RMAnnounce/internal/config"
 	"github.com/scutrobotlab/RMAnnounce/internal/util"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/html"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -16,13 +16,13 @@ type FetchAnnounceJob struct {
 
 func (f FetchAnnounceJob) Init() {
 	c := config.GetInstance()
-	log.Printf("Load webhooks count: %d\n", len(c.Webhooks))
+	logrus.Infof("Load webhooks count: %d", len(c.Webhooks))
 }
 
 func (f FetchAnnounceJob) Run() {
 	c := config.GetInstance()
 	if c.LastId == 0 {
-		log.Printf("LastId is 0, skip\n")
+		logrus.Infof("LastId is 0, skip")
 		return
 	}
 
@@ -41,33 +41,33 @@ func (f FetchAnnounceJob) Run() {
 
 	bodyStr := string(body)
 	if strings.Contains(bodyStr, "您访问的页面不存在") {
-		log.Printf("Page %d not found", c.LastId+1)
+		logrus.Infof("Page %d not found", c.LastId+1)
 		return
 	}
 
-	log.Printf("Found new announcement: %d", c.LastId+1)
+	logrus.Infof("Found new announcement: %d", c.LastId+1)
 	c.LastId++
 	err = c.Save()
 	if err != nil {
-		log.Println(err)
+		logrus.Errorf("Failed to save config: %v", err)
 		return
 	}
 
 	// 解析HTML
 	doc, err := html.Parse(strings.NewReader(bodyStr))
 	if err != nil {
-		log.Fatal(err)
+		logrus.Errorf("Failed to parse page %d: %v", c.LastId, err)
 		return
 	}
 	title, err := getMainTitle(doc)
 	if err != nil {
-		log.Println(err)
+		logrus.Errorf("Failed to get main title of page %d: %v", c.LastId, err)
 		return
 	}
 
 	mainContext, err := getMainContext(doc)
 	if err != nil {
-		log.Printf("Failed to get main context of page %d: %v", c.LastId, err)
+		logrus.Errorf("Failed to get main context of page %d: %v", c.LastId, err)
 		return
 	}
 	contextIsEmpty := mainContext.FirstChild == nil
@@ -107,7 +107,7 @@ func (f FetchAnnounceJob) Run() {
 
 	err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", contents)
 	if err != nil {
-		log.Println(err)
+		logrus.Errorf("Failed to send robotomaster notification: %v", err)
 		return
 	}
 }

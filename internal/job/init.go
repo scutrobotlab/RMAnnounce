@@ -1,8 +1,8 @@
 package job
 
 import (
-	"fmt"
 	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
 )
 
 // InitCronjob initializes the cronjob
@@ -13,7 +13,7 @@ func InitCronjob() *cron.Cron {
 	_, err := c.AddJob("@every 15s", fetchAnnounce)
 	fetchAnnounce.Init()
 	if err != nil {
-		fmt.Printf("Failed to add job: %v\n", err)
+		logrus.Errorf("Failed to add job: %v", err)
 		return nil
 	}
 
@@ -21,7 +21,7 @@ func InitCronjob() *cron.Cron {
 	_, err = c.AddJob("@every 15s", monitorAnnounce)
 	monitorAnnounce.Init()
 	if err != nil {
-		fmt.Printf("Failed to add job: %v\n", err)
+		logrus.Errorf("Failed to add job: %v", err)
 		return nil
 	}
 

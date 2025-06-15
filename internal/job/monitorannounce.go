@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/scutrobotlab/RMAnnounce/internal/config"
 	"github.com/scutrobotlab/RMAnnounce/internal/util"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/html"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -17,7 +17,7 @@ type MonitorAnnounceJob struct {
 
 func (m MonitorAnnounceJob) Init() {
 	c := config.GetInstance()
-	log.Printf("Monitor pages count: %d\n", len(c.MonitoredPages))
+	logrus.Infof("Monitor pages count: %d", len(c.MonitoredPages))
 }
 
 func (m MonitorAnnounceJob) Run() {
@@ -26,33 +26,33 @@ func (m MonitorAnnounceJob) Run() {
 		url := getUrl(page.Id)
 		resp, err := http.Get(url)
 		if err != nil {
-			log.Printf("Failed to get page %d: %v", page.Id, err)
+			logrus.Errorf("Failed to get page %d: %v", page.Id, err)
 			continue
 		}
 
 		body, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
-			log.Printf("Failed to read page %d: %v", page.Id, err)
+			logrus.Errorf("Failed to read page %d: %v", page.Id, err)
 			continue
 		}
 
 		bodyStr := string(body)
 		doc, err := html.Parse(strings.NewReader(bodyStr))
 		if err != nil {
-			log.Printf("Failed to parse page %d: %v", page.Id, err)
+			logrus.Errorf("Failed to parse page %d: %v", page.Id, err)
 			continue
 		}
 
 		mainContext, err := getMainContext(doc)
 		if err != nil {
-			log.Printf("Failed to get main context of page %d: %v", page.Id, err)
+			logrus.Errorf("Failed to get main context of page %d: %v", page.Id, err)
 			continue
 		}
 
 		hash, err := getMainContextHash(mainContext)
 		if err != nil {
-			log.Printf("Failed to get hash of page %d: %v", page.Id, err)
+			logrus.Errorf("Failed to get hash of page %d: %v", page.Id, err)
 			continue
 		}
 
@@ -60,11 +60,11 @@ func (m MonitorAnnounceJob) Run() {
 			c.MonitoredPages[i].Hash = hash
 			err = c.Save()
 			if err != nil {
-				log.Printf("Failed to save page %d: %v", page.Id, err)
+				logrus.Errorf("Failed to save page %d: %v", page.Id, err)
 				continue
 			}
 
-			log.Printf("Init hash of page %d: %s", page.Id, hash)
+			logrus.Infof("Init hash of page %d: %s", page.Id, hash)
 			continue
 		}
 
@@ -72,15 +72,15 @@ func (m MonitorAnnounceJob) Run() {
 			c.MonitoredPages[i].Hash = hash
 			err = c.Save()
 			if err != nil {
-				log.Printf("Failed to save page %d: %v", page.Id, err)
+				logrus.Errorf("Failed to save page %d: %v", page.Id, err)
 				continue
 			}
 
-			log.Printf("Hash changed of page %d: %s", page.Id, hash)
+			logrus.Infof("Hash changed of page %d: %s", page.Id, hash)
 			var title string
 			title, err = getMainTitle(doc)
 			if err != nil {
-				log.Println(err)
+				logrus.Errorf("Failed to get title of page %d: %v", page.Id, err)
 				continue
 			}
 
@@ -102,7 +102,7 @@ func (m MonitorAnnounceJob) Run() {
 			}
 			err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", contents)
 			if err != nil {
-				log.Println(err)
+				logrus.Errorf("Failed to send robotomaster to webhook: %v", err)
 				continue
 			}
 		}
