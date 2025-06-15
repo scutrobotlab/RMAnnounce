@@ -26,7 +26,8 @@ func (f FetchAnnounceJob) Run() {
 		return
 	}
 
-	url := getUrl(c.LastId + 1)
+	nextId := c.LastId + 1
+	url := getUrl(nextId)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -36,11 +37,11 @@ func (f FetchAnnounceJob) Run() {
 
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusNotFound {
-			logrus.Infof("Page %d not found because of 404", c.LastId+1)
+			logrus.Infof("Page %d not found because of 404", nextId)
 			return
 		}
 		// 其他错误状态码
-		logrus.Errorf("Failed to fetch page %d: status code %d", c.LastId+1, resp.StatusCode)
+		logrus.Errorf("Failed to fetch page %d: status code %d", nextId, resp.StatusCode)
 		return
 	}
 
@@ -51,11 +52,11 @@ func (f FetchAnnounceJob) Run() {
 
 	bodyStr := string(body)
 	if strings.Contains(bodyStr, "您访问的页面不存在") {
-		logrus.Infof("Page %d not found because of '您访问的页面不存在'", c.LastId+1)
+		logrus.Infof("Page %d not found because of '您访问的页面不存在'", nextId)
 		return
 	}
 
-	logrus.Infof("Found new announcement: %d", c.LastId+1)
+	logrus.Infof("Found new announcement: %d", nextId)
 	c.LastId++
 	err = c.Save()
 	if err != nil {
@@ -66,18 +67,18 @@ func (f FetchAnnounceJob) Run() {
 	// 解析HTML
 	doc, err := html.Parse(strings.NewReader(bodyStr))
 	if err != nil {
-		logrus.Errorf("Failed to parse page %d: %v", c.LastId, err)
+		logrus.Errorf("Failed to parse page %d: %v", nextId, err)
 		return
 	}
 	title, err := getMainTitle(doc)
 	if err != nil {
-		logrus.Errorf("Failed to get main title of page %d: %v", c.LastId, err)
+		logrus.Errorf("Failed to get main title of page %d: %v", nextId, err)
 		return
 	}
 
 	mainContext, err := getMainContext(doc)
 	if err != nil {
-		logrus.Errorf("Failed to get main context of page %d: %v", c.LastId, err)
+		logrus.Errorf("Failed to get main context of page %d: %v", nextId, err)
 		return
 	}
 	contextIsEmpty := mainContext.FirstChild == nil
