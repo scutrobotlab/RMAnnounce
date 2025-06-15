@@ -6,7 +6,15 @@ import (
 	"errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"sync/atomic"
+	"time"
 )
+
+// LastAtAllTime 最后一次@所有人的时间戳
+var LastAtAllTime atomic.Int64
+
+// AtAllAutoInterval 自动@所有人的时间间隔
+const AtAllAutoInterval = time.Second * 60
 
 type AtAllStatus int
 
@@ -76,7 +84,8 @@ func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [
 	case AtAllStatusTrue:
 		atAll = true
 	case AtAllStatusAuto:
-		// TODO: 自动判断
+		lastAtAllTime := time.UnixMilli(LastAtAllTime.Load())
+		atAll = time.Since(lastAtAllTime) >= AtAllAutoInterval
 	default:
 		return errors.New("invalid atAllStatus")
 	}
@@ -89,6 +98,7 @@ func SendPostMsg(urls []string, title string, atAllStatus AtAllStatus, content [
 		} else {
 			return errors.New("content cannot be empty when atAll is true")
 		}
+		LastAtAllTime.Store(time.Now().UnixMilli())
 	}
 	req.Content.Post.ZhCn.Content = content
 
