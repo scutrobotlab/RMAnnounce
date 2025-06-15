@@ -1,6 +1,7 @@
 package job
 
 import (
+	"github.com/patrickmn/go-cache"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 )
@@ -9,7 +10,9 @@ import (
 func InitCronjob() *cron.Cron {
 	c := cron.New()
 
-	fetchAnnounce := FetchAnnounceJob{}
+	fetchAnnounce := &FetchAnnounceJob{
+		SentMap: cache.New(cache.DefaultExpiration, cache.DefaultExpiration),
+	}
 	_, err := c.AddJob("@every 15s", fetchAnnounce)
 	fetchAnnounce.Init()
 	if err != nil {

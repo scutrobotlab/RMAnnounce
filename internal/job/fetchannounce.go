@@ -2,6 +2,7 @@ package job
 
 import (
 	"fmt"
+	"github.com/patrickmn/go-cache"
 	"github.com/scutrobotlab/RMAnnounce/internal/config"
 	"github.com/scutrobotlab/RMAnnounce/internal/util"
 	"github.com/sirupsen/logrus"
@@ -9,17 +10,19 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type FetchAnnounceJob struct {
+	SentMap *cache.Cache // 用于存储已发送的公告ID，避免重复发送
 }
 
-func (f FetchAnnounceJob) Init() {
+func (f *FetchAnnounceJob) Init() {
 	c := config.GetInstance()
 	logrus.Infof("Load webhooks count: %d", len(c.Webhooks))
 }
 
-func (f FetchAnnounceJob) Run() {
+func (f *FetchAnnounceJob) Run() {
 	c := config.GetInstance()
 	if c.LastId == 0 {
 		logrus.Infof("LastId is 0, skip")
@@ -27,6 +30,19 @@ func (f FetchAnnounceJob) Run() {
 	}
 
 	nextId := c.LastId + 1
+	nextIdStr := fmt.Sprintf("%d", nextId)
+	_, ok := f.SentMap.Get(nextIdStr)
+	if ok {
+		logrus.Warnf("Announcement %d already sent, skipping", nextId)
+		c.LastId = nextId
+		err := c.Save()
+		if err != nil {
+			logrus.Errorf("Failed to save config: %v", err)
+			return
+		}
+		logrus.Infof("Updated LastId to %d", c.LastId)
+		return
+	}
 	url := getUrl(nextId)
 
 	resp, err := http.Get(url)
@@ -123,6 +139,8 @@ func (f FetchAnnounceJob) Run() {
 		logrus.Errorf("Failed to send robotomaster notification: %v", err)
 		return
 	}
+	logrus.Infof("Announcement %d sent successfully", nextId)
+	f.SentMap.Set(nextIdStr, struct{}{}, time.Hour)
 }
 
 func getUrl(id int) string {
