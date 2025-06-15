@@ -87,12 +87,8 @@ func (m MonitorAnnounceJob) Run() {
 			contents := [][]util.Content{
 				{
 					{
-						Tag:    "at",
-						UserId: "all",
-					},
-					{
 						Tag:  "text",
-						Text: " [更新] " + title + "\n",
+						Text: "[更新] " + title + "\n",
 					},
 					{
 						Tag:  "text",
@@ -100,7 +96,7 @@ func (m MonitorAnnounceJob) Run() {
 					},
 				},
 			}
-			err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", contents)
+			err = util.SendPostMsg(c.Webhooks, "RoboMaster 资料站新公告", true, contents)
 			if err != nil {
 				logrus.Errorf("Failed to send robotomaster to webhook: %v", err)
 				continue

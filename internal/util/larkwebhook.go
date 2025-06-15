@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -54,11 +55,21 @@ func SendTextMsg(urls []string, msg string) error {
 }
 
 // SendPostMsg 发送富文本消息
-func SendPostMsg(urls []string, title string, content [][]Content) error {
+func SendPostMsg(urls []string, title string, atAll bool, content [][]Content) error {
 	req := WebhookBotPostReq{
 		MsgType: "post",
 	}
 	req.Content.Post.ZhCn.Title = title
+	if atAll {
+		if len(content) != 0 {
+			content[0] = append([]Content{
+				{Tag: "at", UserId: "all"},
+				{Tag: "text", Text: " "},
+			}, content[0]...)
+		} else {
+			return errors.New("content cannot be empty when atAll is true")
+		}
+	}
 	req.Content.Post.ZhCn.Content = content
 
 	reqBody, err := json.Marshal(req)
