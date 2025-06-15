@@ -31,6 +31,7 @@ func (f FetchAnnounceJob) Run() {
 
 	resp, err := http.Get(url)
 	if err != nil {
+		logrus.Errorf("Failed to http get page %d: %v", nextId, err)
 		return
 	}
 	defer resp.Body.Close()
@@ -47,6 +48,7 @@ func (f FetchAnnounceJob) Run() {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logrus.Errorf("Failed to read page %d: %v", nextId, err)
 		return
 	}
 
